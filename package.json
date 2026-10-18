@@ -10,7 +10,7 @@
     "logging"
   ],
   "scripts": {
-    "build": "tsdown"
+    "generate": "tsdown"
   },
   "homepage": "https://github.com/Loremus299/strawberry#readme",
   "bugs": {
