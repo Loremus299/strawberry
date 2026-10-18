@@ -62,6 +62,7 @@ export class Logger {
 		const color = colorForKey(type);
 		const first = this.ctx.logEntries.length == 1 && this.ctx.nestLevel == 0;
 		const isObject = typeof value == "object";
+		const delta = time.getTime() - this.lastTime.getTime();
 
 		if (first) {
 			console.log(`${C.blue}+ REQUESTID ${this.id}${C.reset}`);
@@ -69,7 +70,7 @@ export class Logger {
 		}
 
 		console.log(
-			`${color}${"-".repeat(padding)}| ${type.toUpperCase()} ${key}: ${isObject ? `${C.cyan}{${C.reset}` : value}${C.reset}`,
+			`${color}${"-".repeat(padding)}| +${delta}ms ${type.toUpperCase()} ${key}: ${isObject ? `${C.cyan}{${C.reset}` : value}${C.reset}`,
 		);
 		if (isObject) {
 			if (type === "sub") {
