@@ -1,12 +1,12 @@
 const C = {
 	reset: "\x1b[0m",
 	gray: "\x1b[90m",
-	cyan: "\x1b[36m",
 	green: "\x1b[32m",
 	yellow: "\x1b[33m",
 	red: "\x1b[31m",
 	blue: "\x1b[34m",
 	magenta: "\x1b[35m",
+	cyan: "\x1b[36m",
 };
 
 type LogType = "error" | "warn" | "info" | "debug" | "trace" | "sub";
@@ -34,7 +34,7 @@ function colorForKey(key: LogType) {
 	if (key == "info") return C.green;
 	if (key == "debug") return C.magenta;
 	if (key == "trace") return C.gray;
-	if (key == "sub") return C.cyan;
+	if (key == "sub") return C.blue;
 	return C.reset;
 }
 
@@ -57,11 +57,31 @@ export class Logger {
 	private push(type: LogType, key: string, value: Object) {
 		const time = new Date();
 		this.ctx.logEntries.push({ type, key, value, time });
-		const prefix = this.ctx.logEntries.length == 1 ? "●" : "|";
+
 		const padding = this.ctx.nestLevel * 4;
 		const color = colorForKey(type);
 		const first = this.ctx.logEntries.length == 1 && this.ctx.nestLevel == 0;
 		const isObject = typeof value == "object";
+
+		if (first) {
+			console.log(`${C.blue}+ REQUESTID ${this.id}${C.reset}`);
+			console.log(`${C.blue}+ TIMESTAMP ${time.toISOString()}${C.reset}`);
+		}
+
+		console.log(
+			`${color}${"-".repeat(padding)}| ${type.toUpperCase()} ${key}: ${isObject ? `${C.cyan}{${C.reset}` : value}${C.reset}`,
+		);
+		if (isObject) {
+			if (type === "sub") {
+				return;
+			}
+			for (const [name, val] of Object.entries(value)) {
+				console.log(
+					`${C.cyan}${"-".repeat(padding)}|   ${name}: ${val}${C.reset}`,
+				);
+			}
+			console.log(`${C.cyan}${"-".repeat(padding)}| }${C.reset}`);
+		}
 
 		this.lastTime = time;
 	}
