@@ -9,8 +9,6 @@ const C = {
 	magenta: "\x1b[35m",
 };
 
-const terminalWidth = 150;
-
 type LogType = "error" | "warn" | "info" | "debug" | "trace" | "sub";
 
 interface LogEntry {
@@ -42,6 +40,7 @@ function colorForKey(key: LogType) {
 
 export class Logger {
 	private readonly ctx: LogContext;
+	private lastTime: Date;
 
 	constructor() {
 		this.ctx = {
@@ -52,10 +51,19 @@ export class Logger {
 			children: [],
 			nestLevel: 0,
 		};
+		this.lastTime = new Date();
 	}
 
 	private push(type: LogType, key: string, value: Object) {
-		this.ctx.logEntries.push({ type, key, value, time: new Date() });
+		const time = new Date();
+		this.ctx.logEntries.push({ type, key, value, time });
+		const prefix = this.ctx.logEntries.length == 1 ? "●" : "|";
+		const padding = this.ctx.nestLevel * 4;
+		const color = colorForKey(type);
+		const first = this.ctx.logEntries.length == 1 && this.ctx.nestLevel == 0;
+		const isObject = typeof value == "object";
+
+		this.lastTime = time;
 	}
 
 	public error(key: string, value: Object) {
@@ -73,83 +81,20 @@ export class Logger {
 	public trace(key: string, value: Object) {
 		this.push("trace", key, value);
 	}
-	private sub(key: string, value: string) {
+	private sub(key: string, value: Object) {
 		this.push("sub", key, value);
 	}
 
-	public nest(title?: string) {
+	public nest(title: string) {
 		const child = new Logger();
-		child.ctx.nestLevel += 1;
+		child.ctx.nestLevel = this.ctx.nestLevel + 1;
 
 		this.ctx.children.push(child);
-		this.sub(
-			"Sub Logger",
-			`[${title ? title : child.ctx.id}] [NEST=${child.ctx.nestLevel}] @ [${child.ctx.time.toDateString()}]`,
-		);
+		this.sub(title, { from: this.id, to: child.id, title });
 		return child;
 	}
 
 	public get id(): string {
 		return this.ctx.id;
 	}
-
-	public print() {
-		let childIndex = 0;
-		const padding = this.ctx.nestLevel * 4;
-		const actualWidth = terminalWidth - padding;
-		let lastTime = this.ctx.time.getTime();
-		const line = `${C.blue}┌─${this.ctx.id} [${this.ctx.time.toDateString()}] [NEST=${this.ctx.nestLevel}]`;
-		console.log(
-			`${" ".repeat(padding)}${line}${"─".repeat(actualWidth - line.length - 2)}─┐${C.reset}`,
-		);
-
-		for (const logEntry of this.ctx.logEntries) {
-			const delta = logEntry.time.getTime() - lastTime;
-			const color = colorForKey(logEntry.type);
-			const line = `${color}⏱ ${delta}ms ${logEntry.key}${C.reset}`;
-			console.log(`${" ".repeat(padding)}${line}${C.reset}`);
-
-			if (typeof logEntry.value == "object") {
-				console.log(logEntry.value);
-			}
-			lastTime = logEntry.time.getTime();
-
-			if (logEntry.type === "sub") {
-				this.ctx.children[childIndex].print();
-				childIndex += 1;
-			}
-		}
-
-		console.log(
-			`${C.blue}${" ".repeat(padding)}└─${"─".repeat(actualWidth - 9)}─┘${C.reset}`,
-		);
-	}
 }
-
-const log = new Logger();
-log.info("route", "POST - /auth/signup");
-log.debug("body", {
-	name: "Gay Cat",
-	email: "email@cat.gay",
-	password: "hidden",
-});
-const serviceLogger = log.nest("Service Call");
-serviceLogger.info("layer", "Service - Create User");
-serviceLogger.debug(
-	"user duplication db check",
-	"Checks if the user with same email already exists",
-);
-const duplicationLogger = serviceLogger.nest();
-duplicationLogger.debug(
-	"query",
-	"SELECT FROM USERS WHERE EMAIL==email@cat.gay",
-);
-duplicationLogger.trace("response", []);
-serviceLogger.debug(
-	"Password strength check",
-	"Password strength check using zxcvbn",
-);
-serviceLogger.trace("password strength", 0.8);
-log.trace("service call return", "yep, new user, strong password");
-log.info("response", 200);
-log.print();
