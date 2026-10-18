@@ -1,0 +1,24 @@
+{
+  "name": "@loremus/strawberry",
+  "version": "1.0.0",
+  "description": "A Request Scoped Logger written using Typescript.",
+  "keywords": [
+    "logger",
+    "typescript",
+    "request",
+    "scoped",
+    "logging"
+  ],
+  "homepage": "https://github.com/Loremus299/strawberry#readme",
+  "bugs": {
+    "url": "https://github.com/Loremus299/strawberry/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Loremus299/strawberry.git"
+  },
+  "license": "MIT",
+  "author": "Loremus",
+  "type": "module",
+  "main": "index.js"
+}
