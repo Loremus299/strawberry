@@ -9,6 +9,16 @@ const C = {
 	cyan: "\x1b[36m",
 };
 
+function colorForKey(key: LogType) {
+	if (key == "error") return C.red;
+	if (key == "warn") return C.yellow;
+	if (key == "info") return C.green;
+	if (key == "debug") return C.magenta;
+	if (key == "trace") return C.gray;
+	if (key == "sub") return C.blue;
+	return C.reset;
+}
+
 type LogType = "error" | "warn" | "info" | "debug" | "trace" | "sub";
 
 interface LogEntry {
@@ -28,16 +38,6 @@ type LogContext = {
 	nestLevel: number;
 };
 
-function colorForKey(key: LogType) {
-	if (key == "error") return C.red;
-	if (key == "warn") return C.yellow;
-	if (key == "info") return C.green;
-	if (key == "debug") return C.magenta;
-	if (key == "trace") return C.gray;
-	if (key == "sub") return C.blue;
-	return C.reset;
-}
-
 export class Logger {
 	private readonly ctx: LogContext;
 	private lastTime: Date;
@@ -54,10 +54,7 @@ export class Logger {
 		this.lastTime = new Date();
 	}
 
-	private push(type: LogType, key: string, value: Object) {
-		const time = new Date();
-		this.ctx.logEntries.push({ type, key, value, time });
-
+	private prettyPrint(type: LogType, time: Date, key: string, value: Object) {
 		const padding = this.ctx.nestLevel * 4;
 		const color = colorForKey(type);
 		const first = this.ctx.logEntries.length == 1 && this.ctx.nestLevel == 0;
@@ -83,7 +80,12 @@ export class Logger {
 			}
 			console.log(`${C.cyan}${"-".repeat(padding)}| }${C.reset}`);
 		}
+	}
 
+	private push(type: LogType, key: string, value: Object) {
+		const time = new Date();
+		this.ctx.logEntries.push({ type, key, value, time });
+		this.prettyPrint(type, time, key, value);
 		this.lastTime = time;
 	}
 
