@@ -70,26 +70,23 @@ export class Logger {
 			`${color}${"-".repeat(padding)}| +${delta}ms ${type.toUpperCase()} ${key}: ${isObject ? `${C.cyan}{${C.reset}` : value}${C.reset}`,
 		);
 
-		const printObject = (obj: unknown, depth = 0): void => {
+		const printObject = (obj: Object, depth = 0): void => {
 			if (obj === null || typeof obj !== "object") return;
-
-			const entries = Array.isArray(obj)
-				? obj.map((item, index) => [String(index), item] as const)
-				: Object.entries(obj);
+			const entries = Object.entries(obj);
 
 			for (const [name, val] of entries) {
 				const prefix = `${C.cyan}${"-".repeat(padding)}| ${"  ".repeat(depth + 1)}`;
 
 				if (val !== null && typeof val === "object") {
-					const [open, close] = Array.isArray(val) ? ["[", "]"] : ["{", "}"];
-					console.log(`${prefix}${name}: ${open}${C.reset}`);
+					console.log(`${prefix}${name}: {${C.reset}`);
 					printObject(val, depth + 1);
-					console.log(`${prefix}${close}${C.reset}`);
+					console.log(`${prefix}}${C.reset}`);
 				} else {
 					console.log(`${prefix}${name}: ${String(val)}${C.reset}`);
 				}
 			}
 		};
+
 		if (isObject) {
 			if (type === "sub") return;
 			printObject(value as Object);
