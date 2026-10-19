@@ -24,7 +24,7 @@ type LogType = "error" | "warn" | "info" | "debug" | "trace" | "sub";
 interface LogEntry {
 	type: LogType;
 	key: string;
-	value: Object;
+	value: unknown;
 	time: Date;
 }
 
@@ -54,11 +54,11 @@ export class Logger {
 		this.lastTime = new Date();
 	}
 
-	private prettyPrint(type: LogType, time: Date, key: string, value: Object) {
+	private prettyPrint(type: LogType, time: Date, key: string, value: unknown) {
 		const padding = this.ctx.nestLevel * 4;
 		const color = colorForKey(type);
 		const first = this.ctx.logEntries.length == 1 && this.ctx.nestLevel == 0;
-		const isObject = typeof value == "object";
+		const isObject = value != null && typeof value == "object";
 		const delta = time.getTime() - this.lastTime.getTime();
 
 		if (first) {
@@ -69,42 +69,57 @@ export class Logger {
 		console.log(
 			`${color}${"-".repeat(padding)}| +${delta}ms ${type.toUpperCase()} ${key}: ${isObject ? `${C.cyan}{${C.reset}` : value}${C.reset}`,
 		);
+
+		const printObject = (obj: unknown, depth = 0): void => {
+			if (obj === null || typeof obj !== "object") return;
+
+			const entries = Array.isArray(obj)
+				? obj.map((item, index) => [String(index), item] as const)
+				: Object.entries(obj);
+
+			for (const [name, val] of entries) {
+				const prefix = `${C.cyan}${"-".repeat(padding)}| ${"  ".repeat(depth + 1)}`;
+
+				if (val !== null && typeof val === "object") {
+					const [open, close] = Array.isArray(val) ? ["[", "]"] : ["{", "}"];
+					console.log(`${prefix}${name}: ${open}${C.reset}`);
+					printObject(val, depth + 1);
+					console.log(`${prefix}${close}${C.reset}`);
+				} else {
+					console.log(`${prefix}${name}: ${String(val)}${C.reset}`);
+				}
+			}
+		};
 		if (isObject) {
-			if (type === "sub") {
-				return;
-			}
-			for (const [name, val] of Object.entries(value)) {
-				console.log(
-					`${C.cyan}${"-".repeat(padding)}|   ${name}: ${val}${C.reset}`,
-				);
-			}
+			if (type === "sub") return;
+			printObject(value as Object);
 			console.log(`${C.cyan}${"-".repeat(padding)}| }${C.reset}`);
 		}
 	}
 
-	private push(type: LogType, key: string, value: Object) {
+	private push(type: LogType, key: string, value: unknown) {
 		const time = new Date();
 		this.ctx.logEntries.push({ type, key, value, time });
 		this.prettyPrint(type, time, key, value);
 		this.lastTime = time;
 	}
 
-	public error(key: string, value: Object) {
+	public error(key: string, value: unknown) {
 		this.push("error", key, value);
 	}
-	public warn(key: string, value: Object) {
+	public warn(key: string, value: unknown) {
 		this.push("warn", key, value);
 	}
-	public info(key: string, value: Object) {
+	public info(key: string, value: unknown) {
 		this.push("info", key, value);
 	}
-	public debug(key: string, value: Object) {
+	public debug(key: string, value: unknown) {
 		this.push("debug", key, value);
 	}
-	public trace(key: string, value: Object) {
+	public trace(key: string, value: unknown) {
 		this.push("trace", key, value);
 	}
-	private sub(key: string, value: Object) {
+	private sub(key: string, value: unknown) {
 		this.push("sub", key, value);
 	}
 
