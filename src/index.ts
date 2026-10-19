@@ -38,9 +38,29 @@ type LogContext = {
 	nestLevel: number;
 };
 
-export class Logger {
+export interface LoggerConfiguration {
+	prettyPrint: boolean;
+	onEntry: (requestId: Readonly<string>, entry: Readonly<LogEntry>) => void;
+	onDump: (
+		requestId: Readonly<string>,
+		entries: Readonly<Array<LogEntry>>,
+	) => Promise<void>;
+}
+
+let defaultConfig: LoggerConfiguration = {
+	prettyPrint: true,
+	onEntry: () => {},
+	onDump: async () => {},
+};
+
+export function configureLogger(configuration: Partial<LoggerConfiguration>) {
+	defaultConfig = { ...defaultConfig, ...configuration };
+}
+
+export default class Logger {
 	private readonly ctx: LogContext;
 	private lastTime: Date;
+	private readonly configuration: LoggerConfiguration;
 
 	constructor() {
 		this.ctx = {
@@ -52,6 +72,7 @@ export class Logger {
 			nestLevel: 0,
 		};
 		this.lastTime = new Date();
+		this.configuration = defaultConfig;
 	}
 
 	private prettyPrint(type: LogType, time: Date, key: string, value: unknown) {
@@ -67,7 +88,7 @@ export class Logger {
 		}
 
 		console.log(
-			`${color}${"-".repeat(padding)}| +${delta}ms ${type.toUpperCase()} ${key}: ${isObject ? `${C.cyan}{${C.reset}` : value}${C.reset}`,
+			`${color}${"-".repeat(padding)}| +${delta}ms ${type.toUpperCase()} ${key}: ${isObject ? `${C.cyan}${type == "sub" ? "" : "{"}${C.reset}` : value}${C.reset}`,
 		);
 
 		const printObject = (obj: Object, depth = 0): void => {
@@ -97,7 +118,11 @@ export class Logger {
 	private push(type: LogType, key: string, value: unknown) {
 		const time = new Date();
 		this.ctx.logEntries.push({ type, key, value, time });
-		this.prettyPrint(type, time, key, value);
+		this.configuration.onEntry(this.ctx.id, { key, value, type, time });
+		{
+			this.configuration.prettyPrint &&
+				this.prettyPrint(type, time, key, value);
+		}
 		this.lastTime = time;
 	}
 
@@ -127,6 +152,17 @@ export class Logger {
 		this.ctx.children.push(child);
 		this.sub(title, { from: this.id, to: child.id, title });
 		return child;
+	}
+
+	private async dumpLogger(logger: Logger) {
+		await this.configuration.onDump(logger.id, logger.ctx.logEntries);
+		for (const child of logger.ctx.children) {
+			await this.dumpLogger(child);
+		}
+	}
+
+	public async dump() {
+		await this.dumpLogger(this);
 	}
 
 	public get id(): string {
