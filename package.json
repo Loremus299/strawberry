@@ -1,6 +1,6 @@
 {
   "name": "@loremus299/strawberry",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Request Scoped Logger written using Typescript.",
   "keywords": [
     "logger",
