@@ -33,12 +33,12 @@ type LogContext = {
 	time: Date;
 
 	logEntries: Array<LogEntry>;
-	children: Array<Logger>;
+	children: Array<Strawberry>;
 
 	nestLevel: number;
 };
 
-export interface LoggerConfiguration {
+interface LoggerConfiguration {
 	prettyPrint: boolean;
 	onEntry: (requestId: Readonly<string>, entry: Readonly<LogEntry>) => void;
 	onDump: (
@@ -53,11 +53,13 @@ let defaultConfig: LoggerConfiguration = {
 	onDump: async () => {},
 };
 
-export function configureLogger(configuration: Partial<LoggerConfiguration>) {
+export function configureStrawberry(
+	configuration: Partial<LoggerConfiguration>,
+) {
 	defaultConfig = { ...defaultConfig, ...configuration };
 }
 
-export default class Logger {
+export default class Strawberry {
 	private readonly ctx: LogContext;
 	private lastTime: Date;
 	private readonly configuration: LoggerConfiguration;
@@ -146,7 +148,7 @@ export default class Logger {
 	}
 
 	public nest(title: string) {
-		const child = new Logger();
+		const child = new Strawberry();
 		child.ctx.nestLevel = this.ctx.nestLevel + 1;
 
 		this.ctx.children.push(child);
@@ -154,7 +156,7 @@ export default class Logger {
 		return child;
 	}
 
-	private async dumpLogger(logger: Logger) {
+	private async dumpLogger(logger: Strawberry) {
 		await this.configuration.onDump(logger.id, logger.ctx.logEntries);
 		for (const child of logger.ctx.children) {
 			await this.dumpLogger(child);
