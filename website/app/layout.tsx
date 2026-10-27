@@ -1,21 +1,15 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Inter, Figtree, Space_Grotesk } from "next/font/google";
+import { Figtree, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { ToastProvider } from "@/components/ui/toast";
 
-const spaceGroteskHeading = Space_Grotesk({subsets:['latin'],variable:'--font-heading'});
-
-const figtree = Figtree({subsets:['latin'],variable:'--font-sans'});
-
-const geistSans = Inter({
-	variable: "--font-geist-sans",
+const spaceGroteskHeading = Space_Grotesk({
 	subsets: ["latin"],
+	variable: "--font-heading",
 });
 
-const geistMono = JetBrains_Mono({
-	variable: "--font-geist-mono",
-	subsets: ["latin"],
-});
+const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
 	title: "Strawberry",
@@ -26,9 +20,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 	return (
 		<html
 			lang="en"
-			className={cn("antialiased", geistSans.variable, geistMono.variable, "font-sans", figtree.variable, spaceGroteskHeading.variable)}
+			className={cn(
+				"antialiased dark",
+				"font-sans",
+				figtree.variable,
+				spaceGroteskHeading.variable,
+			)}
 		>
-			<body>{children}</body>
+			<body>
+				<ToastProvider>{children}</ToastProvider>
+			</body>
 		</html>
 	);
 }
