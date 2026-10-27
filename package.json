@@ -1,47 +1,45 @@
 {
-  "name": "@loremus299/strawberry",
-  "version": "1.0.1",
-  "description": "A Request Scoped Logger written using Typescript.",
-  "keywords": [
-    "logger",
-    "typescript",
-    "request",
-    "scoped",
-    "logging"
-  ],
-  "scripts": {
-    "generate": "tsdown"
-  },
-  "homepage": "https://github.com/Loremus299/strawberry#readme",
-  "bugs": {
-    "url": "https://github.com/Loremus299/strawberry/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Loremus299/strawberry.git"
-  },
-  "license": "MIT",
-  "author": "Loremus",
-
-  "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.mts",
-  "exports": {
-    ".": {
-      "import": {
-        "types": "./dist/index.d.mts",
-        "default": "./dist/index.mjs"
-      },
-      "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/index.cjs"
-      }
-    }
-  },
-
-  "devDependencies": {
-    "tsdown": "^0.23.1",
-    "typescript": "^7.0.2"
-  }
+	"name": "@loremus299/strawberry",
+	"version": "1.0.0",
+	"description": "A Request Scoped Logger written using Typescript.",
+	"keywords": [
+		"logger",
+		"typescript",
+		"request",
+		"scoped",
+		"logging"
+	],
+	"scripts": {
+		"generate": "tsdown"
+	},
+	"homepage": "https://github.com/Loremus299/strawberry#readme",
+	"bugs": {
+		"url": "https://github.com/Loremus299/strawberry/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Loremus299/strawberry.git"
+	},
+	"license": "MIT",
+	"author": "Loremus",
+	"type": "module",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.mts",
+				"default": "./dist/index.mjs"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
+			}
+		}
+	},
+	"devDependencies": {
+		"tsdown": "^0.23.1",
+		"typescript": "^7.0.2"
+	}
 }
